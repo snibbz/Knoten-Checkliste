@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>🪢 Knoten-Checkliste – SBF</title>
+<style>
+  :root {
+    --orange:      #E6781E;
+    --orange-light:#FDF0E6;
+    --orange-mid:  #F5C99A;
+    --green:       #C8E6CD;
+    --green-dark:  #3A7A48;
+    --green-deep:  #2A5E36;
+    --navy:        #2D4679;
+    --navy-light:  #E8EDF6;
+    --navy-mid:    #A8BADE;
+    --bg:          #F4F2EE;
+    --surface:     #FFFFFF;
+    --border:      #DDD9D0;
+    --border-light:#ECEAE5;
+    --text:        #1C1A16;
+    --text-muted:  #706C62;
+    --radius:      12px;
+    --radius-sm:   8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    min-height: 100vh;
+    padding-bottom: env(safe-area-inset-bottom, 2rem);
+  }
+  header {
+    background: var(--navy);
+    padding: 1.1rem 1.25rem 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+  .header-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  header h1 { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.02em; }
+  header h1 span { color: var(--orange); }
+  header p { font-size: 11px; color: var(--navy-mid); margin-top: 1px; letter-spacing: 0.02em; text-transform: uppercase; }
+  .header-badge { background: var(--orange); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 99px; white-space: nowrap; margin-top: 2px; }
+  .progress-wrap { margin-top: 12px; }
+  .progress-meta { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+  .progress-label { font-size: 11px; color: var(--navy-mid); }
+  .progress-pct { font-size: 13px; font-weight: 700; color: var(--orange); }
+  .progress-bar-bg { background: rgba(255,255,255,0.15); border-radius: 99px; height: 6px; overflow: hidden; }
+  .progress-bar { height: 6px; background: linear-gradient(90deg, var(--orange), #F0A050); border-radius: 99px; transition: width 0.4s ease; width: 0%; }
+  .tabs { display: flex; gap: 6px; padding: 0.75rem 1rem; background: var(--navy); border-bottom: 2px solid var(--orange); }
+  .tab { font-size: 12px; font-weight: 600; padding: 6px 16px; border-radius: 99px; border: 1.5px solid rgba(255,255,255,0.2); background: transparent; cursor: pointer; color: rgba(255,255,255,0.6); letter-spacing: 0.02em; transition: all 0.15s; }
+  .tab.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+  .main { padding: 0.875rem 0.875rem 0; }
+  .legend { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .lbadge { font-size: 10px; font-weight: 600; padding: 3px 10px; border-radius: 99px; letter-spacing: 0.03em; text-transform: uppercase; }
+  .lbadge-both { background: var(--green); color: var(--green-deep); }
+  .lbadge-see  { background: var(--navy-light); color: var(--navy); }
+  .day-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; overflow: hidden; transition: box-shadow 0.15s; }
+  .day-card.open { border-color: var(--orange); box-shadow: 0 2px 12px rgba(230,120,30,0.12); }
+  .day-header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; user-select: none; }
+  .day-header:active { background: var(--bg); }
+  .day-num { font-size: 10px; font-weight: 700; color: var(--text-muted); min-width: 36px; text-transform: uppercase; letter-spacing: 0.05em; background: var(--bg); border-radius: 6px; padding: 3px 5px; text-align: center; }
+  .day-card.open .day-num { background: var(--orange-light); color: var(--orange); }
+  .day-title { font-size: 13px; font-weight: 600; flex: 1; line-height: 1.3; }
+  .day-pct { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+  .day-pct.done { color: var(--green-dark); font-weight: 700; }
+  .chevron { width: 18px; height: 18px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-muted); transition: transform 0.2s, background 0.15s; flex-shrink: 0; }
+  .day-card.open .chevron { transform: rotate(180deg); background: var(--orange-light); color: var(--orange); }
+  .day-body { display: none; padding: 0 10px 10px; }
+  .section-new { background: linear-gradient(135deg, #FFF8F0 0%, #FEF3E5 100%); border: 1px solid var(--orange-mid); border-radius: var(--radius-sm); padding: 8px 10px 10px; margin-bottom: 6px; }
+  .section-wdh { background: var(--bg); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 8px 10px 10px; }
+  .section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 6px; }
+  .section-new .section-label { color: var(--orange); }
+  .knoten-block { margin-top: 8px; }
+  .knoten-block + .knoten-block { border-top: 1px solid var(--border-light); padding-top: 8px; margin-top: 8px; }
+  .knoten-name { font-size: 13px; font-weight: 700; margin-bottom: 2px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; color: var(--navy); }
+  .knoten-zweck { font-size: 11px; color: var(--text-muted); margin-bottom: 7px; line-height: 1.4; }
+  .badge { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 99px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .badge-both { background: var(--green); color: var(--green-deep); }
+  .badge-see  { background: var(--navy-light); color: var(--navy); }
+  .crit-item { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border-light); cursor: pointer; }
+  .crit-item:last-child { border-bottom: none; }
+  .crit-item input[type="checkbox"] { width: 18px; height: 18px; flex-shrink: 0; cursor: pointer; }
+  .crit-unsicher { accent-color: #C83232; }
+  .crit-fast     { accent-color: #B06020; }
+  .crit-reif     { accent-color: var(--green-dark); }
+  .crit-zweck    { accent-color: var(--navy); }
+  .crit-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-unsicher { background: #C83232; }
+  .dot-fast     { background: #B06020; }
+  .dot-reif     { background: var(--green-dark); }
+  .dot-zweck    { background: var(--navy); }
+  .crit-label { font-size: 12px; line-height: 1.3; user-select: none; }
+  .crit-label.checked { color: var(--text-muted); text-decoration: line-through; }
+  .view { display: none; }
+  .view.active { display: block; }
+  .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  @media (max-width: 340px) { .overview-grid { grid-template-columns: 1fr; } }
+  .ov-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 11px 12px; }
+  .ov-name { font-size: 12px; font-weight: 700; color: var(--navy); margin-bottom: 2px; line-height: 1.3; }
+  .ov-zweck { font-size: 10px; color: var(--text-muted); margin-bottom: 7px; line-height: 1.4; }
+  .ov-bar-bg { background: var(--border); border-radius: 99px; height: 5px; overflow: hidden; margin: 6px 0 4px; }
+  .ov-bar { height: 5px; background: linear-gradient(90deg, var(--orange), #F0A050); border-radius: 99px; transition: width 0.3s; }
+  .ov-bar.full { background: linear-gradient(90deg, var(--green-dark), #5AAA6A); }
+  .ov-pct { font-size: 10px; color: var(--text-muted); font-weight: 500; }
+  .ov-pct.done { color: var(--green-dark); font-weight: 700; }
+  .reset-wrap { padding: 1rem 0 0; }
+  .btn-reset { font-size: 12px; font-weight: 500; color: var(--text-muted); background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 8px 16px; cursor: pointer; width: 100%; }
+  .btn-reset:active { background: var(--bg); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div>
+      <h1>🪢 Knoten<span>Check</span></h1>
+      <p>SBF Binnen &amp; See · 9 Knoten · 10 Tage</p>
+    </div>
+    <span class="header-badge" id="header-badge">0%</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-meta">
+      <span class="progress-label" id="prog-label">Lade...</span>
+      <span class="progress-pct" id="prog-pct">0%</span>
+    </div>
+    <div class="progress-bar-bg"><div class="progress-bar" id="prog-bar"></div></div>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="showView('days',this)">Tagesplan</button>
+  <button class="tab" onclick="showView('knoten',this)">Knotenübersicht</button>
+</div>
+
+<div class="main">
+  <div id="view-days" class="view active">
+    <div class="legend">
+      <span class="lbadge lbadge-both">Binnen &amp; See</span>
+      <span class="lbadge lbadge-see">Nur See</span>
+    </div>
+    <div id="days-container"></div>
+    <div class="reset-wrap"><button class="btn-reset" onclick="resetAll()">↺ Alles zurücksetzen</button></div>
+  </div>
+  <div id="view-knoten" class="view">
+    <div class="legend">
+      <span class="lbadge lbadge-both">Binnen &amp; See</span>
+      <span class="lbadge lbadge-see">Nur See</span>
+    </div>
+    <div class="overview-grid" id="knoten-overview"></div>
+    <div class="reset-wrap"><button class="btn-reset" onclick="resetAll()">↺ Alles zurücksetzen</button></div>
+  </div>
+</div>
+
+<script>
+const KNOTEN = [
+  { id:"acht",   name:"Achtknoten",                    zweck:"Stopperknoten – verhindert Durchrutschen",          pruefung:"both" },
+  { id:"pals",   name:"Palstek",                       zweck:"Schlinge die nicht zuzieht – Poller oder MOB",      pruefung:"see"  },
+  { id:"web",    name:"Webleinstek (+ auf Slip)",       zweck:"Fender befestigen; Slip = schnell lösbar",         pruefung:"both" },
+  { id:"scho",   name:"Schotstek (einfach)",            zweck:"Zwei ungleich dicke Leinen verbinden",             pruefung:"see"  },
+  { id:"dscho",  name:"Doppelter Schotstek",            zweck:"Wie Schotstek, sicherer bei glattem Tauwerk",      pruefung:"see"  },
+  { id:"rund",   name:"Rundtörn + 2 halbe Schläge",     zweck:"Festmachen an Ringen oder Stangen",                pruefung:"both" },
+  { id:"klampe", name:"Klampe belegen mit Kopfschlag",  zweck:"Boot am Steg festmachen",                          pruefung:"both" },
+  { id:"kreuz",  name:"Kreuzknoten",                   zweck:"Zwei gleich dicke Leinen verbinden",                pruefung:"both" },
+  { id:"stopp",  name:"Stopperstek",                   zweck:"Vorleine sichern; nur eine Richtung verschiebbar", pruefung:"see"  }
+];
+const CRITERIA = [
+  { id:"unsicher", label:"Unsicher",               cbcls:"crit-unsicher", dotcls:"dot-unsicher" },
+  { id:"fast",     label:"Fast sicher",            cbcls:"crit-fast",     dotcls:"dot-fast"     },
+  { id:"reif",     label:"Prüfungsreif",            cbcls:"crit-reif",     dotcls:"dot-reif"     },
+  { id:"zweck",    label:"Verwendungszweck nennen", cbcls:"crit-zweck",    dotcls:"dot-zweck"    }
+];
+const DAYS = [
+  { day:1,  neu:["acht"],   wdh:[] },
+  { day:2,  neu:["pals"],   wdh:["acht"] },
+  { day:3,  neu:["web"],    wdh:["acht","pals"] },
+  { day:4,  neu:["scho"],   wdh:["acht","pals","web"] },
+  { day:5,  neu:["dscho"],  wdh:["acht","pals","web","scho"] },
+  { day:6,  neu:["rund"],   wdh:["acht","pals","web","scho","dscho"] },
+  { day:7,  neu:["klampe"], wdh:["acht","pals","web","scho","dscho","rund"] },
+  { day:8,  neu:["kreuz"],  wdh:["acht","pals","web","scho","dscho","rund","klampe"] },
+  { day:9,  neu:["stopp"],  wdh:["acht","pals","web","scho","dscho","rund","klampe","kreuz"] },
+  { day:10, neu:[],         wdh:["acht","pals","web","scho","dscho","rund","klampe","kreuz","stopp"] }
+];
+function kb(id){return KNOTEN.find(k=>k.id===id);}
+function skey(day,kid,cid){return "sbf_kc2_d"+day+"_"+kid+"_"+cid;}
+function getC(day,kid,cid){try{return localStorage.getItem(skey(day,kid,cid))==="1";}catch(e){return false;}}
+function setC(day,kid,cid,v){try{localStorage.setItem(skey(day,kid,cid),v?"1":"0");}catch(e){}}
+function updateProgress(){
+  var total=0,done=0;
+  DAYS.forEach(function(d){[].concat(d.neu,d.wdh).forEach(function(kid){CRITERIA.forEach(function(c){total++;if(getC(d.day,kid,c.id))done++;});});});
+  var pct=total?Math.round(done/total*100):0;
+  document.getElementById("prog-bar").style.width=pct+"%";
+  document.getElementById("prog-label").textContent=done+" von "+total+" Häkchen gesetzt";
+  document.getElementById("prog-pct").textContent=pct+"%";
+  document.getElementById("header-badge").textContent=pct+"%";
+}
+function dayCompletion(d){
+  var t=0,done=0;
+  [].concat(d.neu,d.wdh).forEach(function(kid){CRITERIA.forEach(function(c){t++;if(getC(d.day,kid,c.id))done++;});});
+  return t?Math.round(done/t*100):0;
+}
+function buildKnotenBlock(day,k){
+  var wrap=document.createElement("div"); wrap.className="knoten-block";
+  var badgeClass=k.pruefung==="both"?"badge-both":"badge-see";
+  var badgeText=k.pruefung==="both"?"Binnen & See":"Nur See";
+  wrap.innerHTML="<div class='knoten-name'>"+k.name+"<span class='badge "+badgeClass+"'>"+badgeText+"</span></div><div class='knoten-zweck'>"+k.zweck+"</div>";
+  CRITERIA.forEach(function(crit){
+    var item=document.createElement("div"); item.className="crit-item";
+    var cb=document.createElement("input"); cb.type="checkbox"; cb.className=crit.cbcls; cb.checked=getC(day,k.id,crit.id);
+    var dot=document.createElement("span"); dot.className="crit-dot "+crit.dotcls;
+    var lbl=document.createElement("span"); lbl.className="crit-label"+(cb.checked?" checked":""); lbl.textContent=crit.label;
+    item.addEventListener("click",function(e){
+      if(e.target!==cb)cb.checked=!cb.checked;
+      setC(day,k.id,crit.id,cb.checked);
+      lbl.className="crit-label"+(cb.checked?" checked":"");
+      updateProgress(); renderDayPct(day);
+      if(document.getElementById("view-knoten").classList.contains("active"))renderKnotenOverview();
+    });
+    item.appendChild(cb); item.appendChild(dot); item.appendChild(lbl); wrap.appendChild(item);
+  });
+  return wrap;
+}
+function renderDayPct(day){
+  var d=DAYS.find(function(x){return x.day===day;}); var pct=dayCompletion(d);
+  var el=document.getElementById("day-pct-"+day); if(!el)return;
+  el.textContent=pct===100?"✓ fertig":(pct?pct+"%":"");
+  el.className="day-pct"+(pct===100?" done":"");
+}
+function renderDays(){
+  var container=document.getElementById("days-container"); container.innerHTML="";
+  DAYS.forEach(function(d){
+    var pct=dayCompletion(d);
+    var card=document.createElement("div"); card.className="day-card"; card.id="day-"+d.day;
+    var title=d.neu.length?"Neu: "+kb(d.neu[0]).name:"Wiederholung alle Knoten";
+    if(d.wdh.length&&d.neu.length)title+=" + "+d.wdh.length+" Wdh.";
+    var pctTxt=pct===100?"✓ fertig":(pct?pct+"%":"");
+    var pctCls="day-pct"+(pct===100?" done":"");
+    card.innerHTML="<div class='day-header' onclick='toggleDay("+d.day+")'><span class='day-num'>Tag "+d.day+"</span><span class='day-title'>"+title+"</span><span class='"+pctCls+"' id='day-pct-"+d.day+"'>"+pctTxt+"</span><span class='chevron'>▾</span></div>";
+    var body=document.createElement("div"); body.className="day-body"; body.id="body-"+d.day;
+    if(d.neu.length){
+      var sec=document.createElement("div"); sec.className="section-new";
+      sec.innerHTML="<div class='section-label'>✦ Neuer Knoten</div>";
+      sec.appendChild(buildKnotenBlock(d.day,kb(d.neu[0]))); body.appendChild(sec);
+    }
+    if(d.wdh.length){
+      var sec2=document.createElement("div"); sec2.className="section-wdh";
+      sec2.innerHTML="<div class='section-label'>↩ Wiederholung</div>";
+      d.wdh.forEach(function(kid){sec2.appendChild(buildKnotenBlock(d.day,kb(kid)));});
+      body.appendChild(sec2);
+    }
+    card.appendChild(body); container.appendChild(card);
+  });
+}
+function renderKnotenOverview(){
+  var cont=document.getElementById("knoten-overview"); cont.innerHTML="";
+  KNOTEN.forEach(function(k){
+    var total=0,done=0;
+    DAYS.forEach(function(d){
+      if([].concat(d.neu,d.wdh).indexOf(k.id)>-1)CRITERIA.forEach(function(c){total++;if(getC(d.day,k.id,c.id))done++;});
+    });
+    var pct=total?Math.round(done/total*100):0;
+    var badgeClass=k.pruefung==="both"?"badge-both":"badge-see";
+    var badgeText=k.pruefung==="both"?"Binnen & See":"Nur See";
+    var card=document.createElement("div"); card.className="ov-card";
+    card.innerHTML="<div class='ov-name'>"+k.name+"</div><div class='ov-zweck'>"+k.zweck+"</div><span class='badge "+badgeClass+"'>"+badgeText+"</span><div class='ov-bar-bg'><div class='ov-bar"+(pct===100?" full":"")+"' style='width:"+pct+"%'></div></div><div class='ov-pct"+(pct===100?" done":"")+"'>"+(pct===100?"✓ fertig":pct+"% geübt")+"</div>";
+    cont.appendChild(card);
+  });
+}
+function toggleDay(day){
+  var body=document.getElementById("body-"+day); var card=document.getElementById("day-"+day);
+  var open=body.style.display==="block";
+  body.style.display=open?"none":"block"; card.classList.toggle("open",!open);
+}
+function showView(name,btn){
+  document.querySelectorAll(".view").forEach(function(v){v.classList.remove("active");});
+  document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("active");});
+  document.getElementById("view-"+name).classList.add("active"); btn.classList.add("active");
+  if(name==="knoten")renderKnotenOverview();
+}
+function resetAll(){
+  if(!confirm("Alle Häkchen zurücksetzen?"))return;
+  DAYS.forEach(function(d){[].concat(d.neu,d.wdh).forEach(function(kid){CRITERIA.forEach(function(c){try{localStorage.removeItem(skey(d.day,kid,c.id));}catch(e){}});});});
+  renderDays(); renderKnotenOverview(); updateProgress();
+}
+renderDays(); updateProgress();
+</script>
+</body>
+</html>
